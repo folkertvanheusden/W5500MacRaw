@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2013, WIZnet Co., Ltd.
  * Copyright (c) 2016, Nicholas Humfrey
+ * Copyright (c) 2026, Folkert van Heusden
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,21 +34,15 @@
 #ifndef W5500_H
 #define W5500_H
 
-#include <stdint.h>
+#include <cstdint>
 #include <Arduino.h>
 #include <SPI.h>
-
 
 
 class Wiznet5500 {
 
 public:
-    /**
-     * Constructor that uses the default hardware SPI pins
-     * @param cs the Arduino Chip Select / Slave Select pin (default 10)
-     */
-    Wiznet5500(int8_t cs=SS);
-
+    Wiznet5500(const int sck, const int miso, const int mosi, const int ss);
 
     /**
      * Initialise the Ethernet controller
@@ -80,6 +75,11 @@ public:
      */
     uint16_t readFrame(uint8_t *buffer, uint16_t bufsize);
 
+    /**
+     * Get the link status of phy in WIZCHIP
+     */
+    int8_t wizphy_getphylink();
+
 
 private:
 
@@ -102,8 +102,7 @@ private:
     static const uint8_t BlockSelectRxBuf = (0x03 << 3);
 
 
-
-    int8_t _cs;
+    const int sck, miso, mosi, ss;
     uint8_t _mac_address[6];
 
     /**
@@ -113,7 +112,7 @@ private:
      */
     inline void wizchip_cs_select()
     {
-        digitalWrite(_cs, LOW);
+        digitalWrite(ss, LOW);
     }
 
     /**
@@ -123,7 +122,7 @@ private:
      */
     inline void wizchip_cs_deselect()
     {
-        digitalWrite(_cs, HIGH);
+        digitalWrite(ss, HIGH);
     }
 
     /**
@@ -212,11 +211,6 @@ private:
     void wizchip_sw_reset();
 
     /**
-     * Get the link status of phy in WIZCHIP
-     */
-    int8_t wizphy_getphylink();
-
-    /**
      * Get the power mode of PHY in WIZCHIP
      */
     int8_t wizphy_getphypmode();
@@ -271,19 +265,19 @@ private:
 
     /** Common registers */
     enum {
-        MR = 0x0000,        ///< Mode Register address (R/W)
-        SHAR = 0x0009,      ///< Source MAC Register address (R/W)
-        INTLEVEL = 0x0013,  ///< Set Interrupt low level timer register address (R/W)
-        IR = 0x0015,        ///< Interrupt Register (R/W)
-        _IMR_ = 0x0016,     ///< Interrupt mask register (R/W)
-        SIR = 0x0017,       ///< Socket Interrupt Register (R/W)
-        SIMR = 0x0018,      ///< Socket Interrupt Mask Register (R/W)
-        _RTR_ = 0x0019,     ///< Timeout register address (1 is 100us) (R/W)
-        _RCR_ = 0x001B,     ///< Retry count register (R/W)
-        UIPR = 0x0028,      ///< Unreachable IP register address in UDP mode (R)
-        UPORTR = 0x002C,    ///< Unreachable Port register address in UDP mode (R)
-        PHYCFGR = 0x002E,   ///< PHY Status Register (R/W)
-        VERSIONR = 0x0039,  ///< Chip version register address (R)
+        CR_MR = 0x0000,        ///< Mode Register address (R/W)
+        CR_SHAR = 0x0009,      ///< Source MAC Register address (R/W)
+        CR_INTLEVEL = 0x0013,  ///< Set Interrupt low level timer register address (R/W)
+        CR_IR = 0x0015,        ///< Interrupt Register (R/W)
+        CR__IMR_ = 0x0016,     ///< Interrupt mask register (R/W)
+        CR_SIR = 0x0017,       ///< Socket Interrupt Register (R/W)
+        CR_SIMR = 0x0018,      ///< Socket Interrupt Mask Register (R/W)
+        CR__RTR_ = 0x0019,     ///< Timeout register address (1 is 100us) (R/W)
+        CR__RCR_ = 0x001B,     ///< Retry count register (R/W)
+        CR_UIPR = 0x0028,      ///< Unreachable IP register address in UDP mode (R)
+        CR_UPORTR = 0x002C,    ///< Unreachable Port register address in UDP mode (R)
+        CR_PHYCFGR = 0x002E,   ///< PHY Status Register (R/W)
+        CR_VERSIONR = 0x0039,  ///< Chip version register address (R)
     };
 
     /** Socket registers */
@@ -430,7 +424,7 @@ private:
      * @sa getMR()
      */
     inline void setMR(uint8_t mode) {
-        wizchip_write(BlockSelectCReg, MR, mode);
+        wizchip_write(BlockSelectCReg, CR_MR, mode);
     }
 
     /**
@@ -439,7 +433,7 @@ private:
      * @sa setMR()
      */
     inline uint8_t getMR() {
-        return wizchip_read(BlockSelectCReg, MR);
+        return wizchip_read(BlockSelectCReg, CR_MR);
     }
 
     /**
@@ -448,7 +442,7 @@ private:
      * @sa getSHAR()
      */
     inline void setSHAR(const uint8_t* macaddr) {
-        wizchip_write_buf(BlockSelectCReg, SHAR, macaddr, 6);
+        wizchip_write_buf(BlockSelectCReg, CR_SHAR, macaddr, 6);
     }
 
     /**
@@ -457,7 +451,7 @@ private:
      * @sa setSHAR()
      */
     inline void getSHAR(uint8_t* macaddr) {
-        wizchip_read_buf(BlockSelectCReg, SHAR, macaddr, 6);
+        wizchip_read_buf(BlockSelectCReg, CR_SHAR, macaddr, 6);
     }
 
     /**
@@ -466,7 +460,7 @@ private:
      * @sa getIR()
      */
     inline void setIR(uint8_t ir) {
-        wizchip_write(BlockSelectCReg, IR, (ir & 0xF0));
+        wizchip_write(BlockSelectCReg, CR_IR, (ir & 0xF0));
     }
 
     /**
@@ -475,7 +469,7 @@ private:
      * @sa setIR()
      */
     inline uint8_t getIR() {
-        return wizchip_read(BlockSelectCReg, IR) & 0xF0;
+        return wizchip_read(BlockSelectCReg, CR_IR) & 0xF0;
     }
 
     /**
@@ -484,7 +478,7 @@ private:
      * @sa getIMR()
      */
     inline void setIMR(uint8_t imr) {
-        wizchip_write(BlockSelectCReg, _IMR_, imr);
+        wizchip_write(BlockSelectCReg, CR__IMR_, imr);
     }
 
     /**
@@ -493,7 +487,7 @@ private:
      * @sa setIMR()
      */
     inline uint8_t getIMR() {
-        return wizchip_read(BlockSelectCReg, _IMR_);
+        return wizchip_read(BlockSelectCReg, CR__IMR_);
     }
 
     /**
@@ -502,7 +496,7 @@ private:
      * @sa getPHYCFGR()
      */
     inline void setPHYCFGR(uint8_t phycfgr) {
-        wizchip_write(BlockSelectCReg, PHYCFGR, phycfgr);
+        wizchip_write(BlockSelectCReg, CR_PHYCFGR, phycfgr);
     }
 
     /**
@@ -511,7 +505,7 @@ private:
      * @sa setPHYCFGR()
      */
     inline uint8_t getPHYCFGR() {
-        return wizchip_read(BlockSelectCReg, PHYCFGR);
+        return wizchip_read(BlockSelectCReg, CR_PHYCFGR);
     }
 
     /**
@@ -519,7 +513,7 @@ private:
      * @return uint8_t. Value of @ref VERSIONR register.
      */
     inline uint8_t getVERSIONR() {
-        return wizchip_read(BlockSelectCReg, VERSIONR);
+        return wizchip_read(BlockSelectCReg, CR_VERSIONR);
     }
 
     /**

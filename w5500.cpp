@@ -1,6 +1,7 @@
 /*
  * Copyright (c) 2013, WIZnet Co., Ltd.
  * Copyright (c) 2016, Nicholas Humfrey
+ * Copyright (c) 2026, Folkert van Heusden
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +32,6 @@
  */
 
 #include "w5500.h"
-#include <SPI.h>
-
 
 
 uint8_t Wiznet5500::wizchip_read(uint8_t block, uint16_t address)
@@ -42,7 +41,6 @@ uint8_t Wiznet5500::wizchip_read(uint8_t block, uint16_t address)
     wizchip_cs_select();
 
     block |= AccessModeRead;
-
     wizchip_spi_write_byte((address & 0xFF00) >> 8);
     wizchip_spi_write_byte((address & 0x00FF) >> 0);
     wizchip_spi_write_byte(block);
@@ -117,7 +115,8 @@ void Wiznet5500::setSn_CR(uint8_t cr) {
     wizchip_write(BlockSelectSReg, Sn_CR, cr);
 
     // Now wait for the command to complete
-    while( wizchip_read(BlockSelectSReg, Sn_CR) );
+    while(wizchip_read(BlockSelectSReg, Sn_CR))
+	    yield();
 }
 
 uint16_t Wiznet5500::getSn_TX_FSR()
@@ -246,19 +245,23 @@ int8_t Wiznet5500::wizphy_setphypmode(uint8_t pmode)
 }
 
 
-Wiznet5500::Wiznet5500(int8_t cs)
+Wiznet5500::Wiznet5500(const int sck, const int miso, const int mosi, const int ss):
+	sck(sck),
+	miso(miso),
+	mosi(mosi),
+	ss(ss)
 {
-    _cs = cs;
 }
 
 boolean Wiznet5500::begin(const uint8_t *mac_address)
 {
     memcpy(_mac_address, mac_address, 6);
 
-    pinMode(_cs, OUTPUT);
+    pinMode(ss, OUTPUT);
+
     wizchip_cs_deselect();
 
-    SPI.begin();
+    SPI.begin(sck, miso, mosi, ss);
     SPI.setClockDivider(SPI_CLOCK_DIV4); // 4 MHz?
     SPI.setBitOrder(MSBFIRST);
     SPI.setDataMode(SPI_MODE0);

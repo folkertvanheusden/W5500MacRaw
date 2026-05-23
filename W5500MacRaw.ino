@@ -32,15 +32,22 @@ const byte mac_address[] = {
     0x52, 0xff, 0xee, 0x1b, 0x44, 0x55
 };
 
-Wiznet5500 w5500;
+Wiznet5500 w5500(13, 12, 11, 14);
 
 void setup() {
     // Setup serial port for debugging
     Serial.begin(115200);
+    while(!Serial)
+      delay(1);
+    delay(250);
     Serial.println("[W5500MacRaw]");
     printMACAddress(mac_address);
 
-    w5500.begin(mac_address);
+    Serial.println(w5500.begin(mac_address));
+
+    Serial.println("Go!");
+
+    Serial.println(w5500.wizphy_getphylink());
 }
 
 
@@ -50,7 +57,7 @@ uint8_t send_count=0;
 void loop() {
 
     uint16_t len = w5500.readFrame(buffer, sizeof(buffer));
-    if ( len > 0 ) {
+    if (len > 0) {
         Serial.print("Len=");
         Serial.println(len, DEC);
 

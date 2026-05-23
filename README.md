@@ -1,3 +1,12 @@
+This fork is adjusted for e.g. the waveshare esp32-s3-eth - it allows the SPI pins to be configured.
+Also fix for variable name clash.
+
+
+-- folkert@vanheusden.com
+
+Original README:
+
+
 W5500MacRaw
 ===========
 
