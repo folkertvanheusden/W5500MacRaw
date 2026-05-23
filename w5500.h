@@ -39,6 +39,8 @@
 #include <SPI.h>
 
 
+extern SPIClass *spi_eth;
+
 class Wiznet5500 {
 
 public:
@@ -132,7 +134,7 @@ private:
      */
     inline uint8_t wizchip_spi_read_byte()
     {
-        return SPI.transfer(0);
+        return spi_eth->transfer(0);
     }
 
     /**
@@ -142,7 +144,7 @@ private:
      */
     inline void wizchip_spi_write_byte(uint8_t wb)
     {
-        SPI.transfer(wb);
+        spi_eth->transfer(wb);
     }
 
 

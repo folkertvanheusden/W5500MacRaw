@@ -34,6 +34,8 @@
 #include "w5500.h"
 
 
+SPIClass *spi_eth = new SPIClass(HSPI);
+
 uint8_t Wiznet5500::wizchip_read(uint8_t block, uint16_t address)
 {
     uint8_t ret;
@@ -261,10 +263,10 @@ boolean Wiznet5500::begin(const uint8_t *mac_address)
 
     wizchip_cs_deselect();
 
-    SPI.begin(sck, miso, mosi, ss);
-    SPI.setClockDivider(SPI_CLOCK_DIV4); // 4 MHz?
-    SPI.setBitOrder(MSBFIRST);
-    SPI.setDataMode(SPI_MODE0);
+    spi_eth->begin(sck, miso, mosi, ss);
+    spi_eth->setClockDivider(SPI_CLOCK_DIV4); // 4 MHz?
+    spi_eth->setBitOrder(MSBFIRST);
+    spi_eth->setDataMode(SPI_MODE0);
 
     wizchip_sw_reset();
 
