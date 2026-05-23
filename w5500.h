@@ -74,8 +74,9 @@ public:
      * @param bufsize the available space in the buffer
      * @return the length of the received packet
      *         or 0 if no packet was received
+     *         -1 if an error occured
      */
-    uint16_t readFrame(uint8_t *buffer, uint16_t bufsize);
+    int16_t readFrame(uint8_t *buffer, uint16_t bufsize);
 
     /**
      * Get the link status of phy in WIZCHIP

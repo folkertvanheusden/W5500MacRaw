@@ -300,7 +300,7 @@ void Wiznet5500::end()
     while(getSn_SR() != SOCK_CLOSED);
 }
 
-uint16_t Wiznet5500::readFrame(uint8_t *buffer, uint16_t bufsize)
+int16_t Wiznet5500::readFrame(uint8_t *buffer, uint16_t bufsize)
 {
     uint16_t len = getSn_RX_RSR();
     
@@ -321,7 +321,7 @@ uint16_t Wiznet5500::readFrame(uint8_t *buffer, uint16_t bufsize)
             // Packet is bigger than buffer - drop the packet
             wizchip_recv_ignore(data_len);
             setSn_CR(Sn_CR_RECV);
-            return 0;
+            return -1;
         }
 
         wizchip_recv_data(buffer, data_len);
@@ -333,9 +333,9 @@ uint16_t Wiznet5500::readFrame(uint8_t *buffer, uint16_t bufsize)
         {
             // Addressed to an Ethernet multicast address or our unicast address
             return data_len;
-        } else {
-            return 0;
         }
+
+        return 0;
     }
 
     return 0;
